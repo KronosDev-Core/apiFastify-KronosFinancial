@@ -70,11 +70,11 @@ export class StockController {
     });
   }
 
-  @Delete('stock/:id')
-  async deleteStock(@Param('id') id: string): Promise<Model> {
-    console.log('deleteStock', id);
+  @Delete('stock/:symbolOrId')
+  async deleteStock(@Param('symbolOrId') symbolOrId: string): Promise<Model> {
     return this.prismaService.stock.delete({
-      where: { id: id },
+      where:
+        symbolOrId.length > 10 ? { id: symbolOrId } : { symbol: symbolOrId },
     });
   }
 }

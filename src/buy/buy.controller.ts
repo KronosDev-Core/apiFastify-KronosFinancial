@@ -18,7 +18,12 @@ export class BuyController {
   @Get('buys')
   async getAllBuys(): Promise<Model[]> {
     return this.prismaService.buy.findMany({
-      include: { stock: true, sell: true },
+      include: {
+        stock: {
+          include: { dividende: true },
+        },
+        sell: true,
+      },
     });
   }
 
