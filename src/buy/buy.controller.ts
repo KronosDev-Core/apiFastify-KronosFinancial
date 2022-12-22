@@ -19,8 +19,10 @@ export class BuyController {
   async getAllBuys(): Promise<Model[]> {
     return this.prismaService.buy.findMany({
       include: {
-        stock: {
-          include: { dividende: true },
+        dividende: {
+          include: {
+            stock: true,
+          },
         },
         sell: true,
       },
@@ -31,7 +33,14 @@ export class BuyController {
   async getBuyById(@Param('id') id: string): Promise<Model | null> {
     return this.prismaService.buy.findUnique({
       where: { id: id },
-      include: { stock: true, sell: true },
+      include: {
+        dividende: {
+          include: {
+            stock: true,
+          },
+        },
+        sell: true,
+      },
     });
   }
 
@@ -39,18 +48,19 @@ export class BuyController {
   async createBuy(
     @Body()
     postData: {
-      date: Date;
+      date: string;
       price: number;
       amount: number;
-      stockSymbol: string;
+      dividendeId: string;
     },
   ): Promise<Model> {
-    const { stockSymbol, ...rest } = postData;
+    const { dividendeId, date, ...rest } = postData;
     return this.prismaService.buy.create({
       data: {
         ...rest,
-        stock: {
-          connect: { symbol: postData.stockSymbol },
+        date: new Date(date.replace('Z', '')),
+        dividende: {
+          connect: { id: postData.dividendeId },
         },
       },
     });
@@ -61,21 +71,26 @@ export class BuyController {
     @Param('id') id: string,
     @Body()
     postData: {
-      date?: Date;
+      date?: string;
       price?: number;
       amount?: number;
-      stockSymbol?: string;
+      dividendeId?: string;
     },
   ): Promise<Model> {
-    const { stockSymbol, ...rest } = postData;
+    const { dividendeId, date } = postData;
+    var data: any = postData;
+    if (date) {
+      data.date = new Date(date.replace('Z', ''));
+    }
+    if (dividendeId) {
+      data.dividende = {
+        connect: { id: postData.dividendeId },
+      };
+    }
+    console.log(data);
     return this.prismaService.buy.update({
       where: { id: id },
-      data: {
-        ...rest,
-        stock: {
-          connect: { symbol: postData.stockSymbol },
-        },
-      },
+      data: data,
     });
   }
 

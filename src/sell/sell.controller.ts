@@ -18,7 +18,17 @@ export class SellController {
   @Get('sells')
   async getAllSell(): Promise<Model[]> {
     return this.prismaService.sell.findMany({
-      include: { buy: true },
+      include: {
+        buy: {
+          include: {
+            dividende: {
+              include: {
+                stock: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
@@ -26,7 +36,17 @@ export class SellController {
   async getSellBySymbol(@Param('id') id: string): Promise<Model | void> {
     this.prismaService.sell.findUnique({
       where: { id: id },
-      include: { buy: true },
+      include: {
+        buy: {
+          include: {
+            dividende: {
+              include: {
+                stock: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
@@ -34,13 +54,20 @@ export class SellController {
   async createSell(
     @Body()
     postData: {
-      date: Date;
+      date: string;
       price: number;
       buyId: string;
     },
   ): Promise<Model> {
+    const { buyId, date, ...rest } = postData;
     return this.prismaService.sell.create({
-      data: postData,
+      data: {
+        ...rest,
+        date: new Date(date.replace('Z', '')),
+        buy: {
+          connect: { id: buyId },
+        },
+      },
     });
   }
 
@@ -49,14 +76,27 @@ export class SellController {
     @Param('id') id: string,
     @Body()
     postData: {
-      date?: Date;
+      date?: string;
       price?: number;
       buyId?: string;
     },
   ): Promise<Model> {
+    const { buyId, date, ...rest } = postData;
+    var data: any = { ...rest };
+
+    if (date) {
+      data.date = new Date(date.replace('Z', ''));
+    }
+
+    if (buyId) {
+      data.buy = {
+        connect: { id: buyId },
+      };
+    }
+
     return this.prismaService.sell.update({
       where: { id: id },
-      data: postData,
+      data: data,
     });
   }
 

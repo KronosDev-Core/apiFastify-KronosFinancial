@@ -17,15 +17,29 @@ export class DividendeController {
   @Get('dividendes')
   async getAllDividende(): Promise<Model[]> {
     return this.prismaService.dividende.findMany({
-      include: { stock: true },
+      include: {
+        stock: true,
+        buy: {
+          include: {
+            sell: true,
+          },
+        },
+      },
     });
   }
 
-  @Get('dividende/:symbolOrId')
-  async getDividendeById(@Param('symbolOrId') symbolOrId: string): Promise<Model | null> {
-    return this.prismaService.dividende.findUnique({
-      where: symbolOrId.length > 10 ? { id: symbolOrId } : { stockSymbol: symbolOrId },
-      include: { stock: true },
+  @Get('dividende/:id')
+  async getDividendeById(@Param('id') id: string): Promise<Model | null> {
+    return this.prismaService.dividende.findFirst({
+      where: { id: id },
+      include: {
+        stock: true,
+        buy: {
+          include: {
+            sell: true,
+          },
+        },
+      },
     });
   }
 
@@ -33,16 +47,18 @@ export class DividendeController {
   async createDividende(
     @Body()
     postData: {
-      dateExDividende: Date;
-      datePayment: Date;
+      dateExDividende: string;
+      datePayment: string;
       dividendePerShare: number;
       stockSymbol: string;
     },
   ): Promise<Model> {
-    const { stockSymbol, ...rest } = postData;
+    const { stockSymbol, dateExDividende, datePayment, ...rest } = postData;
     return this.prismaService.dividende.create({
       data: {
         ...rest,
+        dateExDividende: new Date(dateExDividende.replace('Z', '')),
+        datePayment: new Date(datePayment.replace('Z', '')),
         status: Status.NEW,
         stock: {
           connect: { symbol: postData.stockSymbol },
@@ -51,27 +67,44 @@ export class DividendeController {
     });
   }
 
-  @Put('dividende/:symbolOrId')
+  @Put('dividende/:id')
   async updateDividende(
-    @Param('symbolOrId') symbolOrId: string,
+    @Param('id') id: string,
     @Body()
     postData: {
-      dateExDividende?: Date;
-      datePayment?: Date;
+      dateExDividende?: string;
+      datePayment?: string;
       dividendePerShare?: number;
       stockSymbol?: string;
     },
   ): Promise<Model> {
+    const { stockSymbol, dateExDividende, datePayment } = postData;
+    var data: any = { ...postData, status: Status.UPDATED };
+
+    if (stockSymbol) {
+      data.stock = {
+        connect: { symbol: postData.stockSymbol },
+      };
+    }
+
+    if (dateExDividende) {
+      data.dateExDividende = new Date(dateExDividende.replace('Z', ''));
+    }
+
+    if (datePayment) {
+      data.datePayment = new Date(datePayment.replace('Z', ''));
+    }
+
     return this.prismaService.dividende.update({
-      where: symbolOrId.length > 10 ? { id: symbolOrId } : { stockSymbol: symbolOrId },
-      data: {...postData, status: Status.UPDATED},
+      where: { id: id },
+      data: data,
     });
   }
 
-  @Delete('dividende/:symbolOrId')
-  async deleteDividende(@Param('symbolOrId') symbolOrId: string): Promise<Model> {
+  @Delete('dividende/:id')
+  async deleteDividende(@Param('id') id: string): Promise<Model> {
     return this.prismaService.dividende.delete({
-      where: symbolOrId.length > 10 ? { id: symbolOrId } : { stockSymbol: symbolOrId },
+      where: { id: id },
     });
   }
 }

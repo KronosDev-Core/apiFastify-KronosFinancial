@@ -1,14 +1,14 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native"]
-}
-
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "darwin"]
 }
 
 enum Status {
@@ -18,14 +18,13 @@ enum Status {
 }
 
 model Stock {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  symbol    String     @unique
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  symbol    String      @unique
   name      String
   sector    String
   price     Float
   status    Status
-  dividende Dividende?
-  buy       Buy[]
+  dividende Dividende[]
 }
 
 model Dividende {
@@ -34,18 +33,19 @@ model Dividende {
   datePayment       DateTime
   dividendePerShare Float
   status            Status
-  stockSymbol       String   @unique
+  stockSymbol       String
   stock             Stock    @relation(fields: [stockSymbol], references: [symbol])
+  buy               Buy[]
 }
 
 model Buy {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   date        DateTime
   price       Float
   amount      Float
   sell        Sell?
-  stockSymbol String
-  stock       Stock    @relation(fields: [stockSymbol], references: [symbol])
+  dividendeId String    @db.ObjectId
+  dividende   Dividende @relation(fields: [dividendeId], references: [id])
 }
 
 model Sell {
