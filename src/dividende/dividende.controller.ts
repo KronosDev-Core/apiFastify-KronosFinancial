@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 
 @Controller('api')
@@ -15,8 +16,10 @@ export class DividendeController {
   constructor(private readonly prismaService: PrismaService) {}
 
   @Get('dividendes')
-  async getAllDividende(): Promise<Model[]> {
-    return this.prismaService.dividende.findMany({
+  async getAllDividende(
+    @Query() query: { cursor: number; name: string; dateExDividende: string },
+  ): Promise<Model[]> {
+    var findManyOpts: any = {
       include: {
         stock: true,
         buy: {
@@ -25,7 +28,72 @@ export class DividendeController {
           },
         },
       },
-    });
+    };
+    var whereOr: any[] = [];
+
+    if (query.dateExDividende) {
+      whereOr.push({
+        dateExDividende: {
+          gte: new Date(query.dateExDividende.replace('Z', '')),
+        },
+      });
+    }
+
+    if (query.name) {
+      whereOr.push({
+        stockSymbol: {
+          contains: query.name,
+          mode: 'insensitive',
+        },
+      });
+    }
+
+    if (whereOr.length > 0) {
+      findManyOpts.where = { OR: whereOr };
+    }
+
+    findManyOpts.orderBy = {
+      dateExDividende: 'asc',
+    };
+    findManyOpts.skip = query.cursor ? query.cursor * 10 : 0;
+    findManyOpts.take = 10;
+
+    return this.prismaService.dividende.findMany(findManyOpts);
+  }
+
+  @Get('dividendes/count')
+  async getDividendeCount(
+    @Query() query: { cursor: number; name: string; dateExDividende: string },
+  ): Promise<number> {
+    var findManyOpts: any = {};
+    var whereOr: any[] = [];
+
+    if (query.dateExDividende) {
+      whereOr.push({
+        dateExDividende: {
+          gte: new Date(query.dateExDividende.replace('Z', '')),
+        },
+      });
+    }
+
+    if (query.name) {
+      whereOr.push({
+        stockSymbol: {
+          contains: query.name,
+          mode: 'insensitive',
+        },
+      });
+    }
+
+    if (whereOr.length > 0) {
+      findManyOpts.where = { OR: whereOr };
+    }
+
+    findManyOpts.orderBy = {
+      dateExDividende: 'asc',
+    };
+
+    return this.prismaService.dividende.count(findManyOpts);
   }
 
   @Get('dividende/:id')
