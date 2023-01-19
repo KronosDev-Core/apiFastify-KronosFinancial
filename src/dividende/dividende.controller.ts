@@ -17,7 +17,7 @@ export class DividendeController {
 
   @Get('dividendes')
   async getAllDividende(
-    @Query() query: { cursor: number; name: string; dateExDividende: string },
+    @Query() query: { cursor: number; name: string; dateExDividende: string, strict: boolean },
   ): Promise<Model[]> {
     var findManyOpts: any = {
       include: {
@@ -32,20 +32,31 @@ export class DividendeController {
     var whereOr: any[] = [];
 
     if (query.dateExDividende) {
-      whereOr.push({
+      if (!query.strict) whereOr.push({
         dateExDividende: {
           gte: new Date(query.dateExDividende.replace('Z', '')),
+        },
+      });
+      else whereOr.push({
+        dateExDividende: {
+          equals: new Date(query.dateExDividende.replace('Z', '')),
         },
       });
     }
 
     if (query.name) {
-      whereOr.push({
+      if (!query.strict) whereOr.push({
         stockSymbol: {
           contains: query.name,
           mode: 'insensitive',
         },
       });
+      else whereOr.push({
+        stockSymbol: {
+          equals: query.name,
+          mode: 'insensitive',
+        },
+      })
     }
 
     if (whereOr.length > 0) {
