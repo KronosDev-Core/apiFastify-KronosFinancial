@@ -1,4 +1,4 @@
-import { Buy as Model } from '@prisma/client';
+import { Buy as Model, BuyStatus } from '@prisma/client';
 import {
   Body,
   Controller,
@@ -58,6 +58,7 @@ export class BuyController {
     return this.prismaService.buy.create({
       data: {
         ...rest,
+        status: BuyStatus.PENDING,
         date: new Date(date.replace('Z', '')),
         dividende: {
           connect: { id: postData.dividendeId },
@@ -75,6 +76,7 @@ export class BuyController {
       price?: number;
       amount?: number;
       dividendeId?: string;
+      status?: BuyStatus;
     },
   ): Promise<Model> {
     const { dividendeId, date } = postData;
