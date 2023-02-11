@@ -19,7 +19,7 @@ export class BuyController {
   async getAllBuys(): Promise<Model[]> {
     return this.prismaService.buy.findMany({
       include: {
-        dividende: {
+        dividend: {
           include: {
             stock: true,
           },
@@ -34,7 +34,7 @@ export class BuyController {
     return this.prismaService.buy.findUnique({
       where: { id: id },
       include: {
-        dividende: {
+        dividend: {
           include: {
             stock: true,
           },
@@ -51,17 +51,17 @@ export class BuyController {
       date: string;
       price: number;
       amount: number;
-      dividendeId: string;
+      dividendId: string;
     },
   ): Promise<Model> {
-    const { dividendeId, date, ...rest } = postData;
+    const { dividendId, date, ...rest } = postData;
     return this.prismaService.buy.create({
       data: {
         ...rest,
         status: BuyStatus.PENDING,
         date: new Date(date.replace('Z', '')),
-        dividende: {
-          connect: { id: postData.dividendeId },
+        dividend: {
+          connect: { id: postData.dividendId },
         },
       },
     });
@@ -75,18 +75,18 @@ export class BuyController {
       date?: string;
       price?: number;
       amount?: number;
-      dividendeId?: string;
+      dividendId?: string;
       status?: BuyStatus;
     },
   ): Promise<Model> {
-    const { dividendeId, date } = postData;
+    const { dividendId, date } = postData;
     var data: any = postData;
     if (date) {
       data.date = new Date(date.replace('Z', ''));
     }
-    if (dividendeId) {
-      data.dividende = {
-        connect: { id: postData.dividendeId },
+    if (dividendId) {
+      data.dividend = {
+        connect: { id: postData.dividendId },
       };
     }
     console.log(data);

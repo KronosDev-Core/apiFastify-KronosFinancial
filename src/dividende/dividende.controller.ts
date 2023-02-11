@@ -1,4 +1,4 @@
-import { Dividende as Model, Status } from '@prisma/client';
+import { Dividend as Model, Status } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   Body,
@@ -12,12 +12,18 @@ import {
 } from '@nestjs/common';
 
 @Controller('api')
-export class DividendeController {
+export class DividendController {
   constructor(private readonly prismaService: PrismaService) {}
 
-  @Get('dividendes')
-  async getAllDividende(
-    @Query() query: { cursor: number; name: string; dateExDividende: string, strict: boolean },
+  @Get('dividends')
+  async getAllDividend(
+    @Query()
+    query: {
+      cursor: number;
+      name: string;
+      dateExDividend: string;
+      strict: boolean;
+    },
   ): Promise<Model[]> {
     var findManyOpts: any = {
       include: {
@@ -31,32 +37,36 @@ export class DividendeController {
     };
     var whereOr: any[] = [];
 
-    if (query.dateExDividende) {
-      if (!query.strict) whereOr.push({
-        dateExDividende: {
-          gte: new Date(query.dateExDividende.replace('Z', '')),
-        },
-      });
-      else whereOr.push({
-        dateExDividende: {
-          equals: new Date(query.dateExDividende.replace('Z', '')),
-        },
-      });
+    if (query.dateExDividend) {
+      if (!query.strict)
+        whereOr.push({
+          dateExDividend: {
+            gte: new Date(query.dateExDividend.replace('Z', '')),
+          },
+        });
+      else
+        whereOr.push({
+          dateExDividend: {
+            equals: new Date(query.dateExDividend.replace('Z', '')),
+          },
+        });
     }
 
     if (query.name) {
-      if (!query.strict) whereOr.push({
-        stockSymbol: {
-          contains: query.name,
-          mode: 'insensitive',
-        },
-      });
-      else whereOr.push({
-        stockSymbol: {
-          equals: query.name,
-          mode: 'insensitive',
-        },
-      })
+      if (!query.strict)
+        whereOr.push({
+          stockSymbol: {
+            contains: query.name,
+            mode: 'insensitive',
+          },
+        });
+      else
+        whereOr.push({
+          stockSymbol: {
+            equals: query.name,
+            mode: 'insensitive',
+          },
+        });
     }
 
     if (whereOr.length > 0) {
@@ -64,25 +74,25 @@ export class DividendeController {
     }
 
     findManyOpts.orderBy = {
-      dateExDividende: 'asc',
+      dateExDividend: 'asc',
     };
     findManyOpts.skip = query.cursor ? query.cursor * 10 : 0;
     findManyOpts.take = 10;
 
-    return this.prismaService.dividende.findMany(findManyOpts);
+    return this.prismaService.dividend.findMany(findManyOpts);
   }
 
-  @Get('dividendes/count')
-  async getDividendeCount(
-    @Query() query: { cursor: number; name: string; dateExDividende: string },
+  @Get('dividends/count')
+  async getDividendCount(
+    @Query() query: { cursor: number; name: string; dateExDividend: string },
   ): Promise<number> {
     var findManyOpts: any = {};
     var whereOr: any[] = [];
 
-    if (query.dateExDividende) {
+    if (query.dateExDividend) {
       whereOr.push({
-        dateExDividende: {
-          gte: new Date(query.dateExDividende.replace('Z', '')),
+        dateExDividend: {
+          gte: new Date(query.dateExDividend.replace('Z', '')),
         },
       });
     }
@@ -101,15 +111,15 @@ export class DividendeController {
     }
 
     findManyOpts.orderBy = {
-      dateExDividende: 'asc',
+      dateExDividend: 'asc',
     };
 
-    return this.prismaService.dividende.count(findManyOpts);
+    return this.prismaService.dividend.count(findManyOpts);
   }
 
-  @Get('dividende/:id')
-  async getDividendeById(@Param('id') id: string): Promise<Model | null> {
-    return this.prismaService.dividende.findFirst({
+  @Get('dividend/:id')
+  async getDividendById(@Param('id') id: string): Promise<Model | null> {
+    return this.prismaService.dividend.findFirst({
       where: { id: id },
       include: {
         stock: true,
@@ -122,21 +132,21 @@ export class DividendeController {
     });
   }
 
-  @Post('dividende')
-  async createDividende(
+  @Post('dividend')
+  async createDividend(
     @Body()
     postData: {
-      dateExDividende: string;
+      dateExDividend: string;
       datePayment: string;
-      dividendePerShare: number;
+      dividendPerShare: number;
       stockSymbol: string;
     },
   ): Promise<Model> {
-    const { stockSymbol, dateExDividende, datePayment, ...rest } = postData;
-    return this.prismaService.dividende.create({
+    const { stockSymbol, dateExDividend, datePayment, ...rest } = postData;
+    return this.prismaService.dividend.create({
       data: {
         ...rest,
-        dateExDividende: new Date(dateExDividende.replace('Z', '')),
+        dateExDividend: new Date(dateExDividend.replace('Z', '')),
         datePayment: new Date(datePayment.replace('Z', '')),
         status: Status.NEW,
         stock: {
@@ -146,18 +156,18 @@ export class DividendeController {
     });
   }
 
-  @Put('dividende/:id')
-  async updateDividende(
+  @Put('dividend/:id')
+  async updateDividend(
     @Param('id') id: string,
     @Body()
     postData: {
-      dateExDividende?: string;
+      dateExDividend?: string;
       datePayment?: string;
-      dividendePerShare?: number;
+      dividendPerShare?: number;
       stockSymbol?: string;
     },
   ): Promise<Model> {
-    const { stockSymbol, dateExDividende, datePayment } = postData;
+    const { stockSymbol, dateExDividend, datePayment } = postData;
     var data: any = { ...postData, status: Status.UPDATED };
 
     if (stockSymbol) {
@@ -166,23 +176,23 @@ export class DividendeController {
       };
     }
 
-    if (dateExDividende) {
-      data.dateExDividende = new Date(dateExDividende.replace('Z', ''));
+    if (dateExDividend) {
+      data.dateExDividend = new Date(dateExDividend.replace('Z', ''));
     }
 
     if (datePayment) {
       data.datePayment = new Date(datePayment.replace('Z', ''));
     }
 
-    return this.prismaService.dividende.update({
+    return this.prismaService.dividend.update({
       where: { id: id },
       data: data,
     });
   }
 
-  @Delete('dividende/:id')
-  async deleteDividende(@Param('id') id: string): Promise<Model> {
-    return this.prismaService.dividende.delete({
+  @Delete('dividend/:id')
+  async deleteDividend(@Param('id') id: string): Promise<Model> {
+    return this.prismaService.dividend.delete({
       where: { id: id },
     });
   }
