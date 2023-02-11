@@ -21,7 +21,7 @@ export class SellController {
       include: {
         buy: {
           include: {
-            dividende: {
+            dividend: {
               include: {
                 stock: true,
               },
@@ -39,7 +39,7 @@ export class SellController {
       include: {
         buy: {
           include: {
-            dividende: {
+            dividend: {
               include: {
                 stock: true,
               },

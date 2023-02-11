@@ -17,7 +17,7 @@ export class StockController {
   @Get('stocks')
   async getAllStocks(): Promise<Model[]> {
     return this.prismaService.stock.findMany({
-      include: { dividende: { include: { buy: { include: { sell: true } } } } },
+      include: { dividend: { include: { buy: { include: { sell: true } } } } },
     });
   }
 
@@ -28,7 +28,7 @@ export class StockController {
     return this.prismaService.stock.findUnique({
       where:
         symbolOrId.length > 10 ? { id: symbolOrId } : { symbol: symbolOrId },
-      include: { dividende: { include: { buy: { include: { sell: true } } } } },
+      include: { dividend: { include: { buy: { include: { sell: true } } } } },
     });
   }
 
@@ -40,14 +40,14 @@ export class StockController {
       name: string;
       sector: string;
       price: number;
-      dividende: Prisma.DividendeCreateInput;
+      dividend: Prisma.DividendCreateInput;
     },
   ): Promise<Model> {
     return this.prismaService.stock.create({
       data: {
         ...userData,
         status: Status.NEW,
-        dividende: { create: userData.dividende },
+        dividend: { create: userData.dividend },
       },
     });
   }
