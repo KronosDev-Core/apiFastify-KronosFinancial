@@ -1,6 +1,6 @@
 import { PrismaService } from './prisma/prisma.service';
-import { Module, Post } from '@nestjs/common';
-import { DividendeModule } from './dividende/dividende.module';
+import { Module } from '@nestjs/common';
+import { DividendModule } from './dividend/dividend.module';
 import { StockModule } from './stock/stock.module';
 import { BuyModule } from './buy/buy.module';
 import { SellModule } from './sell/sell.module';
@@ -14,7 +14,7 @@ import { BullModule } from '@nestjs/bull';
         port: 6379,
       },
     }),
-    DividendeModule,
+    DividendModule,
     StockModule,
     BuyModule,
     SellModule,

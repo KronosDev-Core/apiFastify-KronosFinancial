@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { DividendeController } from './dividende.controller';
+import { DividendController } from './dividend.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
-  controllers: [DividendeController],
+  controllers: [DividendController],
   providers: [PrismaService],
 })
-export class DividendeModule {}
+export class DividendModule {}
